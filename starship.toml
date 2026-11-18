@@ -1,0 +1,94 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Two-line prompt adapted from ViegPhunt's oh-my-posh theme
+# (github.com/ViegPhunt/Dotfiles .config/ohmyposh/viet.omp.json, MIT), recoloured
+# Tokyo Night, clock icon instead of the heart, segments joined like starship's
+# tokyo-night preset.
+#   ╭─[ user | (venv) ][  path ][ (branch  stash) |  time ]
+#   ╰─❯   (red ❯ when the last command failed)
+# Each colour section is always present (user XOR venv, path, git XOR clock), so the
+# joints ( = U+E0B0 arrow, fg = left bg, bg = right bg) live here in the top-level format.
+
+add_newline = true
+command_timeout = 200
+palette = 'tokyo_night'
+
+format = """
+[╭─](tn_text)\
+[](fg:tn_yellow)\
+$username\
+$python\
+[](fg:tn_yellow bg:tn_blue)\
+$directory\
+[](fg:tn_blue bg:tn_magenta)\
+$git_branch\
+$git_commit\
+$git_status\
+${custom.clock}\
+[](fg:tn_magenta)\
+$line_break\
+$character"""
+
+[palettes.tokyo_night]
+tn_text = '#c0caf5'
+tn_base = '#1a1b26'
+tn_yellow = '#e0af68'
+tn_blue = '#7aa2f7'
+tn_magenta = '#bb9af7'
+tn_green = '#9ece6a'
+tn_red = '#f7768e'
+
+# Shown unless a Python venv is active (then the venv takes its place).
+[username]
+show_always = false
+detect_env_vars = ['!VIRTUAL_ENV', 'USER']
+style_user = 'bg:tn_yellow fg:tn_base'
+style_root = 'bg:tn_yellow fg:tn_red bold'
+format = '[ $user ]($style)'
+
+# Only when a venv is active (no project-file detection, no python --version call).
+[python]
+detect_extensions = []
+detect_files = []
+detect_folders = []
+style = 'bg:tn_yellow fg:tn_base'
+format = '[ \($virtualenv\) ]($style)'
+
+[directory]
+truncation_length = 0
+truncate_to_repo = false
+read_only = ' '
+style = 'bg:tn_blue fg:tn_base'
+read_only_style = 'bg:tn_blue fg:tn_base'
+format = '[   $path]($style)[$read_only]($read_only_style)[ ]($style)'
+
+# git = git_branch | git_commit (opens the parenthesis) + git_status (stash count, closes it).
+[git_branch]
+only_attached = true
+style = 'bg:tn_magenta fg:tn_base'
+format = '[ \($branch]($style)'
+
+[git_commit]
+only_detached = true
+tag_disabled = false
+tag_symbol = '  '
+style = 'bg:tn_magenta fg:tn_base'
+format = '[ \($hash$tag]($style)'
+
+[git_status]
+stashed = '${count}'
+style = 'bg:tn_magenta fg:tn_base'
+format = '[(  $stashed)\) ]($style)'
+
+# Time, only outside git repos (same rule as the original). Pure bash: no git/date exec.
+[custom.clock]
+when = true
+shell = ['bash', '--noprofile', '--norc']
+command = 'd=$PWD; while [[ $d ]]; do [[ -e $d/.git ]] && exit; d=${d%/*}; done; printf "%(%H:%M)T"'
+style = 'bg:tn_magenta fg:tn_base'
+format = '[(   $output )]($style)'
+
+[character]
+format = '$symbol '
+success_symbol = '[╰─](tn_text)[❯](bold tn_green)'
+error_symbol = '[╰─](tn_text)[❯](bold tn_red)'
